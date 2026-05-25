@@ -13,7 +13,7 @@ Branch names must be short, kebab-case, and describe the change.
 
 | Layer       | Technology                                      |
 | ----------- | ----------------------------------------------- |
-| Front-end   | Vite + React + TanStack Router + TanStack Query |
+| Front-end   | Vite + React + TanStack Router + TanStack Query + react-icons |
 | Styling     | Tailwind CSS v4                                 |
 | Code Editor | Monaco Editor (`@monaco-editor/react`)          |
 | Back-end    | Fastify (Node.js)                               |
