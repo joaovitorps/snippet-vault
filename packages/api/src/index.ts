@@ -6,6 +6,9 @@ const app = Fastify({ logger: config.isDevelopment })
 
 if (config.isProduction) {
   await app.register(import('@fastify/helmet'))
+  // Rate limiting is per-IP, not global. Each unique client gets its own 100 req/min bucket.
+  // 100/min is generous for a scaffold — tighten per-route for auth/CRUD later (e.g. 5–10/min).
+  // Docs: https://github.com/fastify/fastify-rate-limit
   await app.register(import('@fastify/rate-limit'), {
     max: 100,
     timeWindow: '1 minute',
