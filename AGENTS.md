@@ -54,6 +54,16 @@ npm run typecheck → turbo typecheck (tsc --noEmit, cached)
 npm run test     → turbo test (Vitest, cached)
 ```
 
+### Shared Dev Dependencies
+
+Some packages are declared in multiple workspaces (e.g. `vitest`, `typescript`). Keep versions in sync across all packages:
+
+```
+npm update <pkg1> <pkg2> ... -ws
+```
+
+The `-ws` flag targets all workspaces at once, avoiding version drift between packages.
+
 ### Git Hooks
 
 ```
