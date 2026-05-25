@@ -10,3 +10,5 @@ dist/
 .turbo/
 coverage/
 .vite/
+routeTree.gen.ts
+*.tsbuildinfo

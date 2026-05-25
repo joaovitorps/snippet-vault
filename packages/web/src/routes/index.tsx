@@ -5,8 +5,8 @@ export const Route = createFileRoute('/')({
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <h1 className="text-5xl font-bold tracking-tight">SnippetVault</h1>
       <p className="mt-4 max-w-md text-lg text-gray-400">
-        Save, organize, and share your code snippets. Syntax highlighting, tags, and search
-        — all in one place.
+        Save, organize, and share your code snippets. Syntax highlighting, tags, and search — all in
+        one place.
       </p>
       <div className="mt-8 flex gap-4">
         <Link
