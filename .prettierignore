@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.turbo/
+coverage/
+*.gen.ts
+package-lock.json
+.agents/
+skills-lock.json
