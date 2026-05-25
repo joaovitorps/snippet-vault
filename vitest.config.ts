@@ -4,15 +4,20 @@ export default defineConfig({
   test: {
     projects: [
       {
-        name: 'api',
-        root: './packages/api',
-        environment: 'node',
+        test: {
+          name: 'api',
+          root: './packages/api',
+          environment: 'node',
+          globals: true,
+        },
       },
       {
-        name: 'web',
-        root: './packages/web',
-        environment: 'happy-dom',
-        globals: true,
+        test: {
+          name: 'web',
+          root: './packages/web',
+          environment: 'happy-dom',
+          globals: true,
+        },
       },
     ],
   },
