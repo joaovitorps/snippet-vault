@@ -14,7 +14,8 @@ Branch names must be short, kebab-case, and describe the change.
 | Layer       | Technology                                      |
 | ----------- | ----------------------------------------------- |
 | Front-end   | Vite + React + TanStack Router + TanStack Query + react-icons |
-| Styling     | Tailwind CSS v4                                 |
+| Styling     | Tailwind CSS v4 + clsx + tailwind-merge + cva      |
+| Components  | shadcn/ui                                         |
 | Code Editor | Monaco Editor (`@monaco-editor/react`)          |
 | Back-end    | Fastify (Node.js)                               |
 | Auth        | Better Auth                                     |
