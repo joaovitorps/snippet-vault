@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import Fastify from 'fastify'
 import { healthRoutes } from './health.js'
 

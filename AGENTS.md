@@ -37,7 +37,7 @@ Branch names must be short, kebab-case, and describe the change.
 | eslint-plugin-react-refresh | Vite HMR-safe exports                             |
 | Prettier                    | Code formatting                                   |
 | husky + lint-staged         | Git hooks (pre-commit: format + lint + typecheck) |
-| Vitest                      | Testing framework                                 |
+| Vitest                      | Testing framework (globals: true in root + each package vitest.config) |
 | @testing-library/react      | React component testing                           |
 | Happy DOM                   | Lightweight DOM environment                       |
 | drizzle-kit                 | Database schema generation + migrations           |
