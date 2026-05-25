@@ -21,20 +21,20 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "tailwind-merge": "3.6.0",
-    "lucide-react": "0.487.0"
+    "react-icons": "5.6.0"
   },
   "devDependencies": {
     "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "4.7.0",
+    "@vitejs/plugin-react": "6.0.2",
     "@tanstack/router-plugin": "1.168.11",
     "@tanstack/react-router-devtools": "1.167.0",
     "@tanstack/react-query-devtools": "5.100.14",
     "tailwindcss": "4.3.0",
     "@tailwindcss/vite": "4.3.0",
     "typescript": "5.9.3",
-    "vite": "7.3.3",
-    "vitest": "3.2.4",
+    "vite": "8.0.14",
+    "vitest": "4.1.7",
     "@happy-dom/global-registrator": "20.9.0",
     "@testing-library/react": "16.3.2"
   }
