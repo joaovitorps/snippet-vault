@@ -25,6 +25,10 @@ if (config.isDevelopment) {
 await app.register(healthRoutes)
 
 if (config.isProduction) {
+  // In production, Fastify is the single server. @fastify/static serves web/dist/ at /.
+  // SPA fallback: API misses return JSON 404, everything else serves index.html
+  // so TanStack Router handles client-side routing (/snippets, /signin, etc.).
+  // turbo.json "dependsOn": ["^build"] ensures web/dist/ exists before API references it.
   await app.register(import('@fastify/static'), {
     root: config.webDistPath,
     prefix: '/',
