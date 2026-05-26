@@ -4,6 +4,10 @@ import { fromNodeHeaders } from 'better-auth/node'
 import { auth } from '../lib/auth.js'
 
 declare module 'fastify' {
+  interface FastifyInstance {
+    requireAuth: preHandlerHookHandler
+  }
+
   interface FastifyRequest {
     session: typeof auth.$Infer.Session | null
   }
