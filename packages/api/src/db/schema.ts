@@ -1,8 +1,9 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
+import { user } from './auth-schema.js'
 
 export const snippets = sqliteTable('snippets', {
   id: text('id').primaryKey(),
-  userId: text('user_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id),
   title: text('title').notNull(),
   code: text('code').notNull(),
   language: text('language').notNull(),
