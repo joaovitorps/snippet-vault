@@ -10,7 +10,7 @@ export async function sendMagicLinkEmail(params: { to: string; url: string }): P
 
   await resend.emails.send({
     from: `SnippetVault <${config.fromEmail}>`,
-    to: params.to,
+    to: config.isDevelopment ? 'delivered@resend.dev' : params.to,
     subject: 'Sign in to SnippetVault',
     html: `<p>Click <a href="${params.url}">here</a> to sign in to SnippetVault.</p>
 <p>This link expires in 15 minutes.</p>`,
