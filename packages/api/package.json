@@ -12,7 +12,9 @@
     "lint": "eslint src/",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
     "@fastify/cors": "11.2.0",
