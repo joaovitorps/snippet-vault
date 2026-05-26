@@ -5,9 +5,9 @@ const envSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string().default('./snippetvault.db'),
-  BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: z.string().url(),
-  RESEND_API_KEY: z.string().startsWith('re_'),
+  BETTER_AUTH_SECRET: z.string().min(32).default('dev-secret-key-at-least-32-characters-long'),
+  BETTER_AUTH_URL: z.string().url().default('http://localhost:3000'),
+  RESEND_API_KEY: z.string().startsWith('re_').default('re_dev_key'),
   FROM_EMAIL: z.string().email().default('noreply@snippetvault.joaovitorps.dev'),
 })
 
