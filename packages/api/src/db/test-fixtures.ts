@@ -16,15 +16,14 @@ interface Fixtures {
 
 export const test = baseTest.extend<Fixtures>({
   // eslint-disable-next-line no-empty-pattern
-  db: async ({}, use) => {
+  db: async ({}, Use) => {
     const testDbPath = path.resolve(__dirname, `../../test-snippetvault-${crypto.randomUUID()}.db`)
     const sqlite = new Database(testDbPath)
     sqlite.pragma('journal_mode = WAL')
     sqlite.pragma('foreign_keys = ON')
     const db = drizzle(sqlite)
     migrate(db, { migrationsFolder: path.resolve(__dirname, '../../drizzle') })
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    await use(db)
+    await Use(db)
     sqlite.close()
     if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath)
     const walPath = `${testDbPath}-wal`
