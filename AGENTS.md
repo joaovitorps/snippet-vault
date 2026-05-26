@@ -9,6 +9,18 @@ Never commit directly to `main` or `master`. Always create a branch for your cha
 
 Branch names must be short, kebab-case, and describe the change.
 
+## GitHub CLI
+
+Always use the `gh` CLI for any GitHub operations (PRs, issues, releases, checks, etc.). If `gh` is not installed or not authenticated, prompt the user to install/login before proceeding. Only fetch GitHub URLs/pages when the user explicitly asks for it.
+
+## Implementation Plans
+
+When creating an implementation plan for a GitHub issue, post the plan as issue comments instead of creating local doc files:
+
+- Post a **summary comment** with goal, architecture overview, and task list
+- Post a **detailed plan comment** with the exact full plan content -- the same content you would write in a local file, including all checkboxes, code blocks, commit steps, expected outputs, and self-review
+- Do not create local markdown files (e.g., `docs/`, `plans/` directories) for plans; the issue comment thread is the source of truth
+
 ## Tech Stack
 
 | Layer       | Technology                                      |
