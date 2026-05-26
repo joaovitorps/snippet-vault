@@ -19,6 +19,10 @@ Always create branches from `main` (or `master`). Before running `git checkout -
 
 Never create a branch from a detached HEAD or from any branch other than `main`.
 
+## ESLint Disable Comments
+
+Before adding any `eslint-disable` comment (e.g., `eslint-disable-next-line`), **always prompt the user** to discuss the situation. Do not unilaterally suppress lint rules — discuss why the rule is being triggered and whether the fix should be in the code or in the ESLint config instead.
+
 ## GitHub CLI
 
 Always use the `gh` CLI for any GitHub operations (PRs, issues, releases, checks, etc.). If `gh` is not installed or not authenticated, prompt the user to install/login before proceeding. Only fetch GitHub URLs/pages when the user explicitly asks for it.
