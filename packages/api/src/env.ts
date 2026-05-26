@@ -5,6 +5,10 @@ const envSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string().default('./snippetvault.db'),
+  BETTER_AUTH_SECRET: z.string().min(32),
+  BETTER_AUTH_URL: z.string().url(),
+  RESEND_API_KEY: z.string().startsWith('re_'),
+  FROM_EMAIL: z.string().email().default('noreply@snippetvault.joaovitorps.dev'),
 })
 
 const parsed = envSchema.safeParse(process.env)
@@ -21,5 +25,9 @@ export const config = {
   isProduction: parsed.data.NODE_ENV === 'production',
   isDevelopment: parsed.data.NODE_ENV === 'development',
   databaseUrl: parsed.data.DATABASE_URL,
+  betterAuthSecret: parsed.data.BETTER_AUTH_SECRET,
+  betterAuthUrl: parsed.data.BETTER_AUTH_URL,
+  resendApiKey: parsed.data.RESEND_API_KEY,
+  fromEmail: parsed.data.FROM_EMAIL,
   webDistPath: new URL('../../web/dist', import.meta.url).pathname,
 } as const
