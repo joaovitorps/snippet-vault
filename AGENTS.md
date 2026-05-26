@@ -9,6 +9,16 @@ Never commit directly to `main` or `master`. Always create a branch for your cha
 
 Branch names must be short, kebab-case, and describe the change.
 
+## Branch Creation
+
+Always create branches from `main` (or `master`). Before running `git checkout -b`:
+
+1. Verify current branch: `git branch --show-current`
+2. If not on `main`, switch first: `git checkout main && git pull`
+3. Then create the branch: `git checkout -b feat/<short-description>`
+
+Never create a branch from a detached HEAD or from any branch other than `main`.
+
 ## GitHub CLI
 
 Always use the `gh` CLI for any GitHub operations (PRs, issues, releases, checks, etc.). If `gh` is not installed or not authenticated, prompt the user to install/login before proceeding. Only fetch GitHub URLs/pages when the user explicitly asks for it.
