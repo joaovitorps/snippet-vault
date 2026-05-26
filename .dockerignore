@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.turbo
+coverage
+.env
+.env.*
+*.db
+*.db-journal
+*.log
+.DS_Store
+.vscode
+.husky
+.agents
