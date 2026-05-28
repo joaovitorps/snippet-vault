@@ -27,6 +27,10 @@ Before adding any `eslint-disable` comment (e.g., `eslint-disable-next-line`), *
 
 Always use the `gh` CLI for any GitHub operations (PRs, issues, releases, checks, etc.). If `gh` is not installed or not authenticated, prompt the user to install/login before proceeding. Only fetch GitHub URLs/pages when the user explicitly asks for it.
 
+## Pull Requests
+
+When creating a PR, always use the template at `.github/pull_request_template.md`. Fill in every section (`gh pr create --body-file` or `gh pr edit` if already created). Do not skip the Type, Scope, or Verification checkboxes.
+
 ## Implementation Plans
 
 When creating an implementation plan for a GitHub issue, post the plan as issue comments instead of creating local doc files:

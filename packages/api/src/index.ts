@@ -1,6 +1,8 @@
 import Fastify from 'fastify'
 import { config } from './env.js'
 import { healthRoutes } from './routes/health.js'
+import { authRoutes } from './routes/auth.js'
+import authMiddleware from './middleware/auth.js'
 
 const app = Fastify({ logger: config.isDevelopment })
 
@@ -22,7 +24,9 @@ if (config.isDevelopment) {
   })
 }
 
+await app.register(authMiddleware)
 await app.register(healthRoutes)
+await app.register(authRoutes)
 
 if (config.isProduction) {
   // In production, Fastify is the single server. @fastify/static serves web/dist/ at /.
