@@ -23,4 +23,15 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
+  {
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ImportDeclaration[source.value=/^node:/] > ImportDefaultSpecifier',
+          message: 'Do not use default imports from node:* modules. Use named imports instead.',
+        },
+      ],
+    },
+  },
 )
