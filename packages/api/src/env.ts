@@ -12,6 +12,7 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
   DATABASE_URL: z.string().default("./snippetvault.db"),
+  LIBSQL_AUTH_TOKEN: z.string().optional(),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.string().url(),
   RESEND_API_KEY: z.string().startsWith("re_"),
@@ -27,6 +28,7 @@ export const config = {
   isProduction: parsed.NODE_ENV === "production",
   isDevelopment: parsed.NODE_ENV === "development",
   databaseUrl: parsed.DATABASE_URL,
+  libsqlAuthToken: parsed.LIBSQL_AUTH_TOKEN,
   betterAuthSecret: parsed.BETTER_AUTH_SECRET,
   betterAuthUrl: parsed.BETTER_AUTH_URL,
   resendApiKey: parsed.RESEND_API_KEY,
