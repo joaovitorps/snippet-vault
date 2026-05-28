@@ -17,23 +17,18 @@ const envSchema = z.object({
   FROM_EMAIL: z.string().email(),
 })
 
-const parsed = envSchema.safeParse(process.env)
-
-if (!parsed.success) {
-  console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors)
-  process.exit(1)
-}
+const parsed = envSchema.parse(process.env)
 
 export const config = {
-  port: parsed.data.PORT,
-  host: parsed.data.HOST,
-  nodeEnv: parsed.data.NODE_ENV,
-  isProduction: parsed.data.NODE_ENV === 'production',
-  isDevelopment: parsed.data.NODE_ENV === 'development',
-  databaseUrl: parsed.data.DATABASE_URL,
-  betterAuthSecret: parsed.data.BETTER_AUTH_SECRET,
-  betterAuthUrl: parsed.data.BETTER_AUTH_URL,
-  resendApiKey: parsed.data.RESEND_API_KEY,
-  fromEmail: parsed.data.FROM_EMAIL,
+  port: parsed.PORT,
+  host: parsed.HOST,
+  nodeEnv: parsed.NODE_ENV,
+  isProduction: parsed.NODE_ENV === 'production',
+  isDevelopment: parsed.NODE_ENV === 'development',
+  databaseUrl: parsed.DATABASE_URL,
+  betterAuthSecret: parsed.BETTER_AUTH_SECRET,
+  betterAuthUrl: parsed.BETTER_AUTH_URL,
+  resendApiKey: parsed.RESEND_API_KEY,
+  fromEmail: parsed.FROM_EMAIL,
   webDistPath: new URL('../../web/dist', import.meta.url).pathname,
 } as const
