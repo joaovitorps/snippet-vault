@@ -10,10 +10,10 @@
     },
     "lint": {},
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": []
     },
     "test:watch": {
-      "dependsOn": ["build"],
+      "dependsOn": [],
       "cache": false,
       "persistent": true
     },
