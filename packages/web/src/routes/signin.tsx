@@ -1,10 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/signin')({
+export const Route = createFileRoute("/signin")({
   component: () => (
     <div className="mx-auto mt-24 max-w-sm">
       <h2 className="text-2xl font-bold">Sign in</h2>
-      <p className="mt-2 text-sm text-gray-400">Enter your email to receive a magic link.</p>
+      <p className="mt-2 text-sm text-gray-400">
+        Enter your email to receive a magic link.
+      </p>
       <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
         <input
           type="email"
@@ -20,4 +22,4 @@ export const Route = createFileRoute('/signin')({
       </form>
     </div>
   ),
-})
+});
