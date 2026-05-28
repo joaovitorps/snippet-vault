@@ -23,6 +23,21 @@ Never create a branch from a detached HEAD or from any branch other than `main`.
 
 Before adding any `eslint-disable` comment (e.g., `eslint-disable-next-line`), **always prompt the user** to discuss the situation. Do not unilaterally suppress lint rules — discuss why the rule is being triggered and whether the fix should be in the code or in the ESLint config instead.
 
+### Known ESLint Exceptions
+
+The following `eslint-disable` comments are intentionally allowed in the codebase:
+
+**`eslint-disable-next-line no-empty-pattern`** — Vitest fixtures with no dependencies require an empty destructuring pattern (`{}`) as the first argument to the fixture function. This is a known Vitest pattern, not a code smell.
+
+```ts
+export const test = baseTest.extend<Fixtures>({
+  // eslint-disable-next-line no-empty-pattern
+  db: async ({}, Use) => {
+    // ...
+  },
+})
+```
+
 ## GitHub CLI
 
 Always use the `gh` CLI for any GitHub operations (PRs, issues, releases, checks, etc.). If `gh` is not installed or not authenticated, prompt the user to install/login before proceeding. Only fetch GitHub URLs/pages when the user explicitly asks for it.
@@ -104,6 +119,32 @@ git commit
     2. turbo typecheck: full tsc --noEmit across monorepo
     → any failure blocks commit
 ```
+
+## Codebase Patterns
+
+### Imports
+
+- **Named imports from `node:*` modules**: Always use named imports, never default.
+  ```ts
+  import { resolve } from 'node:path'     // ✅
+  import path from 'node:path'            // ❌
+  import { randomUUID } from 'node:crypto' // ✅
+  import crypto from 'node:crypto'         // ❌
+  import { existsSync } from 'node:fs'     // ✅
+  import fs from 'node:fs'                 // ❌
+  ```
+
+- **`.js` extensions required**: Node.js ESM mandates file extensions on relative imports. Do not remove them.
+  ```ts
+  import { config } from './env.js'       // ✅
+  import { config } from './env'          // ❌ (breaks at runtime)
+  ```
+
+### Test Infrastructure
+
+- **Env vars stubbed via `setupFiles`**: `packages/api/src/tests/env-setup.ts` provides `vi.stubEnv` for all required env vars. Tests that transitively import `env.ts` no longer need to mock it.
+- **`unstubEnvs: true`**: Vitest auto-restores env vars before each test.
+- **Test fixtures live in `src/tests/fixtures/`**: Reusable test infrastructure (DB fixtures, mocks) is consolidated there.
 
 ## Installed Agent Skills
 
