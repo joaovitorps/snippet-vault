@@ -3,8 +3,7 @@ import { z } from "zod";
 import { resolve } from "node:path";
 import { getDirname } from "./utils/path.js";
 
-const __dirname = getDirname(import.meta.url);
-dotenv.config({ path: resolve(__dirname, "../../../.env") });
+dotenv.config({ path: resolve(getDirname(import.meta.url), "../../../.env") });
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
