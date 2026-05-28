@@ -35,7 +35,7 @@ export const test = baseTest.extend<Fixtures>({
   db: async ({}, Use) => {
     // ...
   },
-})
+});
 ```
 
 ## GitHub CLI
@@ -56,38 +56,38 @@ When creating an implementation plan for a GitHub issue, post the plan as issue 
 
 ## Tech Stack
 
-| Layer       | Technology                                      |
-| ----------- | ----------------------------------------------- |
+| Layer       | Technology                                                    |
+| ----------- | ------------------------------------------------------------- |
 | Front-end   | Vite + React + TanStack Router + TanStack Query + react-icons |
-| Styling     | Tailwind CSS v4 + clsx + tailwind-merge + cva      |
-| Components  | shadcn/ui                                         |
-| Code Editor | Monaco Editor (`@monaco-editor/react`)          |
-| Back-end    | Fastify (Node.js)                               |
-| Auth        | Better Auth                                     |
-| ORM         | Drizzle                                         |
-| Database    | SQLite (better-sqlite3)                         |
-| Container   | Docker (multi-stage) + Caddy                    |
-| Host        | DigitalOcean Droplet                            |
-| CI/CD       | GitHub Actions                                  |
-| Monorepo    | npm workspaces + Turborepo                      |
+| Styling     | Tailwind CSS v4 + clsx + tailwind-merge + cva                 |
+| Components  | shadcn/ui                                                     |
+| Code Editor | Monaco Editor (`@monaco-editor/react`)                        |
+| Back-end    | Fastify (Node.js)                                             |
+| Auth        | Better Auth                                                   |
+| ORM         | Drizzle                                                       |
+| Database    | SQLite (better-sqlite3)                                       |
+| Container   | Docker (multi-stage) + Caddy                                  |
+| Host        | DigitalOcean Droplet                                          |
+| CI/CD       | GitHub Actions                                                |
+| Monorepo    | npm workspaces + Turborepo                                    |
 
 ## Dev Tooling
 
-| Tool                        | Purpose                                           |
-| --------------------------- | ------------------------------------------------- |
-| Turborepo                   | Monorepo task orchestration + caching             |
-| ESLint v9 (flat config)     | Linting JS/TS                                     |
-| typescript-eslint           | Type-aware ESLint rules                           |
-| eslint-config-prettier      | Disables ESLint/Prettier conflicts                |
-| eslint-plugin-react-hooks   | React hooks rules                                 |
-| eslint-plugin-react-refresh | Vite HMR-safe exports                             |
-| Prettier                    | Code formatting                                   |
-| husky + lint-staged         | Git hooks (pre-commit: format + lint + typecheck) |
+| Tool                        | Purpose                                                                |
+| --------------------------- | ---------------------------------------------------------------------- |
+| Turborepo                   | Monorepo task orchestration + caching                                  |
+| ESLint v9 (flat config)     | Linting JS/TS                                                          |
+| typescript-eslint           | Type-aware ESLint rules                                                |
+| eslint-config-prettier      | Disables ESLint/Prettier conflicts                                     |
+| eslint-plugin-react-hooks   | React hooks rules                                                      |
+| eslint-plugin-react-refresh | Vite HMR-safe exports                                                  |
+| Prettier                    | Code formatting                                                        |
+| husky + lint-staged         | Git hooks (pre-commit: format + lint + typecheck)                      |
 | Vitest                      | Testing framework (globals: true in root + each package vitest.config) |
-| @testing-library/react      | React component testing                           |
-| Happy DOM                   | Lightweight DOM environment                       |
-| drizzle-kit                 | Database schema generation + migrations           |
-| @better-auth/cli            | Auth table schema generation                      |
+| @testing-library/react      | React component testing                                                |
+| Happy DOM                   | Lightweight DOM environment                                            |
+| drizzle-kit                 | Database schema generation + migrations                                |
+| @better-auth/cli            | Auth table schema generation                                           |
 
 ### NPM Scripts
 
@@ -125,19 +125,20 @@ git commit
 ### Imports
 
 - **Named imports from `node:*` modules**: Always use named imports, never default.
+
   ```ts
-  import { resolve } from 'node:path'     // ✅
-  import path from 'node:path'            // ❌
-  import { randomUUID } from 'node:crypto' // ✅
-  import crypto from 'node:crypto'         // ❌
-  import { existsSync } from 'node:fs'     // ✅
-  import fs from 'node:fs'                 // ❌
+  import { resolve } from "node:path"; // ✅
+  import path from "node:path"; // ❌
+  import { randomUUID } from "node:crypto"; // ✅
+  import crypto from "node:crypto"; // ❌
+  import { existsSync } from "node:fs"; // ✅
+  import fs from "node:fs"; // ❌
   ```
 
 - **`.js` extensions required**: Node.js ESM mandates file extensions on relative imports. Do not remove them.
   ```ts
-  import { config } from './env.js'       // ✅
-  import { config } from './env'          // ❌ (breaks at runtime)
+  import { config } from "./env.js"; // ✅
+  import { config } from "./env"; // ❌ (breaks at runtime)
   ```
 
 ### Test Infrastructure

@@ -1,6 +1,6 @@
-import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export const Route = createRootRoute({
   component: () => (
@@ -11,7 +11,10 @@ export const Route = createRootRoute({
             SnippetVault
           </Link>
           <div className="flex items-center gap-4">
-            <Link to="/signin" className="text-sm text-gray-400 hover:text-white">
+            <Link
+              to="/signin"
+              className="text-sm text-gray-400 hover:text-white"
+            >
               Sign in
             </Link>
           </div>
@@ -28,4 +31,4 @@ export const Route = createRootRoute({
       )}
     </>
   ),
-})
+});
