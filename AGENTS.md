@@ -157,7 +157,13 @@ Located in `.agents/skills/`. These provide specialized agent guidance for each 
 | Better Auth best practices     | `better-auth/skills`                  | 53.6K    |
 | TanStack Query best practices  | `deckardger/tanstack-agent-skills`    | 6.3K     |
 | TanStack Router best practices | `deckardger/tanstack-agent-skills`    | 3.7K     |
+| shadcn/ui                      | `shadcn/ui`                           | 164.2K   |
+| Monorepo management            | `wshobson/agents`                     | 9.3K     |
 | Drizzle ORM patterns           | `giuseppe-trisciuoglio/developer-kit` | 1.1K     |
 | Tailwind CSS patterns          | `giuseppe-trisciuoglio/developer-kit` | 11.4K    |
 | Multi-stage Dockerfile         | `github/awesome-copilot`              | 14.3K    |
-| Monorepo management            | `wshobson/agents`                     | 9.3K     |
+| GitHub Actions docs            | `xixu-me/skills`                      | 175.9K   |
+| Turso DB                       | `tursodatabase/agent-skills`          | 91       |
+| Zod                            | `anivar/zod-skill`                    | 288      |
+| Vitest                         | `itechmeat/llm-code`                  | 134      |
+| React Testing Library          | `itechmeat/llm-code`                  | 882      |
