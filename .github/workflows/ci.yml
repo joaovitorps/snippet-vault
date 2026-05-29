@@ -6,35 +6,43 @@ on:
       - main
 
 jobs:
-  docker-smoke:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
 
-      - name: Build Docker image
-        run: docker build -t app .
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test
 
-      - name: Smoke test
-        run: |
-          docker run -d --name test-app -p 3000:3000 \
-            -e NODE_ENV=development \
-            -e HOST=0.0.0.0 \
-            -e DATABASE_URL=file:./test-snippetvault.db \
-            -e BETTER_AUTH_SECRET=test-secret-at-least-32-characters-long \
-            -e BETTER_AUTH_URL=http://localhost:3000 \
-            -e RESEND_API_KEY=re_fake_key_for_test \
-            -e FROM_EMAIL=test@example.com \
-            app
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run typecheck
 
-          for i in $(seq 1 15); do
-            if curl -sSf "http://localhost:3000/api/health" > /dev/null 2>&1; then
-              echo "Smoke test passed"
-              exit 0
-            fi
-            echo "Attempt $i/15..."
-            sleep 2
-          done
-
-          echo "Smoke test failed. Container logs:"
-          docker logs test-app
-          exit 1
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build .
