@@ -1,15 +1,15 @@
 import { test as baseTest } from "vitest";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
+import { migrate } from "drizzle-orm/libsql/migrator";
 import { randomUUID } from "node:crypto";
 import { existsSync, unlinkSync } from "node:fs";
 import { resolve } from "node:path";
 import { getDirname } from "../../utils/path.js";
 
 interface Fixtures {
-  db: BetterSQLite3Database;
+  db: LibSQLDatabase;
 }
 
 export const test = baseTest.extend<Fixtures>({
@@ -19,18 +19,16 @@ export const test = baseTest.extend<Fixtures>({
       getDirname(import.meta.url),
       `../../../test-snippetvault-${randomUUID()}.db`,
     );
-    const sqlite = new Database(testDbPath);
-    sqlite.pragma("journal_mode = WAL");
-    sqlite.pragma("foreign_keys = ON");
-    const db = drizzle(sqlite);
-    migrate(db, {
+    const client = createClient({ url: `file:${testDbPath}` });
+    const db = drizzle(client);
+    await migrate(db, {
       migrationsFolder: resolve(
         getDirname(import.meta.url),
         "../../../drizzle",
       ),
     });
     await Use(db);
-    sqlite.close();
+    client.close();
     if (existsSync(testDbPath)) unlinkSync(testDbPath);
     const walPath = `${testDbPath}-wal`;
     if (existsSync(walPath)) unlinkSync(walPath);

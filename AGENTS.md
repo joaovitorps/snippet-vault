@@ -65,7 +65,7 @@ When creating an implementation plan for a GitHub issue, post the plan as issue 
 | Back-end    | Fastify (Node.js)                                             |
 | Auth        | Better Auth                                                   |
 | ORM         | Drizzle                                                       |
-| Database    | SQLite (better-sqlite3)                                       |
+| Database    | SQLite (@libsql/client) — local files + Turso remote          |
 | Container   | Docker (multi-stage) + Caddy                                  |
 | Host        | DigitalOcean Droplet                                          |
 | CI/CD       | GitHub Actions                                                |
@@ -140,6 +140,35 @@ git commit
   import { config } from "./env.js"; // ✅
   import { config } from "./env"; // ❌ (breaks at runtime)
   ```
+
+### Database
+
+- **libsql driver for all environments**: The project uses `@libsql/client` + `drizzle-orm/libsql` as the single database driver. It accepts both local file paths and remote `libsql://` URLs:
+
+  ```ts
+  import { createClient } from "@libsql/client";
+  import { drizzle } from "drizzle-orm/libsql";
+
+  // Local (dev/test):
+  const client = createClient({ url: "file:./snippetvault.db" });
+
+  // Remote (production):
+  const client = createClient({
+    url: "libsql://db.turso.io",
+    authToken: "...",
+  });
+
+  const db = drizzle(client);
+  ```
+
+- **async queries**: The libsql driver is async. All `db.select()`, `db.insert()`, `db.update()`, `db.delete()` calls must be `await`ed.
+
+  ```ts
+  const rows = await db.select().from(users); // ✅
+  const rows = db.select().from(users); // ❌ returns Promise, not data
+  ```
+
+- **LIBSQL_AUTH_TOKEN**: Optional. Only required when `DATABASE_URL` is a `libsql://` URL pointing to a remote Turso database. Generate with `turso db tokens create <db-name>`.
 
 ### Test Infrastructure
 

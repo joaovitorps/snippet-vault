@@ -1,10 +1,11 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import { config } from "../env.js";
+import { normalizeDbUrl } from "./normalize-url.js";
 
-const sqlite = new Database(config.databaseUrl);
+const client = createClient({
+  url: normalizeDbUrl(config.databaseUrl),
+  authToken: config.libsqlAuthToken,
+});
 
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-
-export const db = drizzle(sqlite);
+export const db = drizzle(client);
