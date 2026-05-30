@@ -206,7 +206,7 @@ await app.register(authMiddleware);
 await app.register(someRoutes);
 ```
 
-**Auth protection:** Add `{ preHandler: [app.requireAuth] }` as the route options object (second argument). Access the session via `request.session!.user.id`:
+**Auth protection:** Add `{ preHandler: [app.requireAuth] }` as the route options object (second argument). Access the session via `request.session.user.id`:
 
 ```ts
 app.get(
@@ -352,13 +352,13 @@ The web package uses **file-based routing** with `@tanstack/react-router`. All r
 
 **Route file conventions:**
 
-| Convention | Example | Behavior |
-|-----------|---------|----------|
-| `index.tsx` | `routes/index.tsx` | Index route at `/` |
-| `__root.tsx` | `routes/__root.tsx` | Root layout shell (header, devtools) |
-| `_prefix.tsx` | `routes/_authenticated.tsx` | Layout/group route — no URL segment |
-| Named files | `routes/signin.tsx` | Page route at `/signin` |
-| Nested files | `routes/_authenticated/snippets/index.tsx` | Page at `/snippets/` inside auth layout |
+| Convention    | Example                                    | Behavior                                |
+| ------------- | ------------------------------------------ | --------------------------------------- |
+| `index.tsx`   | `routes/index.tsx`                         | Index route at `/`                      |
+| `__root.tsx`  | `routes/__root.tsx`                        | Root layout shell (header, devtools)    |
+| `_prefix.tsx` | `routes/_authenticated.tsx`                | Layout/group route — no URL segment     |
+| Named files   | `routes/signin.tsx`                        | Page route at `/signin`                 |
+| Nested files  | `routes/_authenticated/snippets/index.tsx` | Page at `/snippets/` inside auth layout |
 
 **Route file shape:** Every route exports a `Route` object using `createFileRoute` (or `createRootRoute` for `__root.tsx`):
 
@@ -401,6 +401,7 @@ await api.delete("/snippets/123");
 ```
 
 Key behaviors:
+
 - Sets `credentials: "include"` on all requests for cookie-based auth.
 - Vite dev server proxies `/api` requests to `http://localhost:3000` (the Fastify API).
 - On error (non-2xx), throws `ApiError` with `status` (number) and `message` (from `body.error`).
@@ -438,18 +439,18 @@ Some existing components use raw `className` strings directly — both styles ar
 
 **Color palette (dark theme by default):**
 
-| Role | Class |
-|------|-------|
-| Page background | `bg-gray-950` |
-| Text primary | `text-white` |
-| Text secondary | `text-gray-400` |
-| Text muted | `text-gray-500` |
-| Borders | `border-gray-700`, `border-gray-800` |
-| Hover border | `hover:border-gray-600` |
-| Accent (primary) | `bg-indigo-600`, `hover:bg-indigo-500` |
-| Accent (focus) | `focus:border-indigo-500`, `focus:ring-indigo-500` |
-| Input background | `bg-gray-900` |
-| Input placeholder | `placeholder-gray-500` |
+| Role              | Class                                              |
+| ----------------- | -------------------------------------------------- |
+| Page background   | `bg-gray-950`                                      |
+| Text primary      | `text-white`                                       |
+| Text secondary    | `text-gray-400`                                    |
+| Text muted        | `text-gray-500`                                    |
+| Borders           | `border-gray-700`, `border-gray-800`               |
+| Hover border      | `hover:border-gray-600`                            |
+| Accent (primary)  | `bg-indigo-600`, `hover:bg-indigo-500`             |
+| Accent (focus)    | `focus:border-indigo-500`, `focus:ring-indigo-500` |
+| Input background  | `bg-gray-900`                                      |
+| Input placeholder | `placeholder-gray-500`                             |
 
 **shadcn/ui:** Dependencies are installed (`class-variance-authority`, `clsx`, `tailwind-merge`) but no components have been added yet. Add components with `npx shadcn@latest add <component>`.
 
