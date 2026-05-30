@@ -135,10 +135,15 @@ git commit
   import fs from "node:fs"; // ❌
   ```
 
-- **`.js` extensions required**: Node.js ESM mandates file extensions on relative imports. Do not remove them.
+- **`.js` extensions required in the API package**: Node.js ESM mandates file extensions on relative imports. Do not remove them.
   ```ts
   import { config } from "./env.js"; // ✅
   import { config } from "./env"; // ❌ (breaks at runtime)
+  ```
+- **No `.js` extensions in the web package**: The web package uses Vite's bundler resolution, not Node.js ESM, so `.js` extensions are not needed on imports.
+  ```ts
+  import { api } from "@/api/client"; // ✅ (web)
+  import { api } from "@/api/client.js"; // ❌ (web — don't do this)
   ```
 
 ### Database
@@ -175,6 +180,278 @@ git commit
 - **Env vars stubbed via `setupFiles`**: `packages/api/src/tests/env-setup.ts` provides `vi.stubEnv` for all required env vars. Tests that transitively import `env.ts` no longer need to mock it.
 - **`unstubEnvs: true`**: Vitest auto-restores env vars before each test.
 - **Test fixtures live in `src/tests/fixtures/`**: Reusable test infrastructure (DB fixtures, mocks) is consolidated there.
+
+### API Conventions
+
+#### Fastify Routes
+
+Every route file exports an async function receiving `FastifyInstance`:
+
+```ts
+import type { FastifyInstance } from "fastify";
+
+export async function someRoutes(app: FastifyInstance) {
+  app.get("/api/some", async (request, reply) => {
+    return { status: "ok" };
+  });
+}
+```
+
+**Registration in `index.ts`:** Import the route plugin and call `await app.register(someRoutes)` after `authMiddleware`:
+
+```ts
+import { someRoutes } from "./routes/some.js";
+// ...
+await app.register(authMiddleware);
+await app.register(someRoutes);
+```
+
+**Auth protection:** Add `{ preHandler: [app.requireAuth] }` as the route options object (second argument). Access the session via `request.session!.user.id`:
+
+```ts
+app.get(
+  "/api/protected",
+  { preHandler: [app.requireAuth] },
+  async (request, reply) => {
+    const userId = request.session!.user.id;
+    return { userId };
+  },
+);
+```
+
+Routes without `requireAuth` are public (e.g., `/api/health`).
+
+#### Error Responses
+
+All errors returned from routes use the shape `{ error: string }`. Return them via `reply.status(N).send(...)`:
+
+```ts
+// 401 — handled automatically by requireAuth preHandler
+// 400 — validation errors
+return reply.status(400).send({ error: "Title is required" });
+
+// 403 — forbidden (not the owner)
+return reply.status(403).send({ error: "You do not own this snippet" });
+
+// 404 — not found
+return reply.status(404).send({ error: "Snippet not found" });
+```
+
+The `requireAuth` middleware already returns `{ error: "Unauthorized" }` with status 401 — routes do not need to handle this case.
+
+#### Request Validation
+
+Use Fastify's built-in JSON Schema validation for HTTP request validation (body, querystring, params). Define schemas directly on the route with the `schema` option:
+
+```ts
+app.post(
+  "/api/snippets",
+  {
+    schema: {
+      body: {
+        type: "object",
+        properties: {
+          title: { type: "string", minLength: 1 },
+          code: { type: "string", minLength: 1 },
+        },
+        required: ["title", "code"],
+      },
+    },
+    preHandler: [app.requireAuth],
+  },
+  async (request, reply) => {
+    const { title, code } = request.body as { title: string; code: string };
+    // ...
+  },
+);
+```
+
+Fastify automatically returns a 400 validation error response for invalid input.
+
+**When to use Zod instead of JSON Schema:** Use Zod for validation that is not tied to the HTTP layer — e.g., validating data from external sources, composing validation logic across multiple functions, or when the validation rules are complex (conditional logic, transforms). For request/response validation, prefer Fastify JSON Schema.
+
+#### Database Access
+
+Import the database instance and schema from the db directory:
+
+```ts
+import { db } from "../db/index.js";
+import { snippets } from "../db/schema.js";
+```
+
+**IDs:** Use `import { randomUUID } from "node:crypto"` for all primary key and share ID generation. This is built into Node.js 22 — no extra dependency needed.
+
+**Timestamps:** Snippets and other app tables use ISO 8601 strings (`new Date().toISOString()`). Auth tables (user, session, account, verification) use epoch milliseconds (`new Date()`). Do not mix conventions within a table.
+
+#### API Route Tests
+
+Test files live next to the route file they test (e.g., `routes/snippets.test.ts` for `routes/snippets.ts`).
+
+**Mocking Better Auth:** Mock `../lib/auth.js` with `vi.mock` at the top of the test file, before importing the route under test:
+
+```ts
+import { vi } from "vitest";
+
+const mockGetSession = vi.fn();
+
+vi.mock("../lib/auth.js", () => ({
+  auth: {
+    api: {
+      getSession: (...args: unknown[]) => mockGetSession(...args),
+    },
+  },
+}));
+
+import { test as dbTest } from "../tests/fixtures/db.js";
+import authMiddleware from "../middleware/auth.js";
+import { snippetRoutes } from "./snippets.js";
+```
+
+**DB fixture:** Each `dbTest(...)` callback receives a `{ db }` with an isolated ephemeral SQLite that has all migrations applied. Cleanup is automatic.
+
+**Building a test app:** Create a `Fastify()` instance, register `authMiddleware` and the route plugin, then call `app.ready()`. Each test should build its own app instance and close it at the end.
+
+```ts
+dbTest("POST /api/snippets creates a snippet", async ({ db }) => {
+  const app = Fastify();
+  await app.register(authMiddleware);
+  await app.register(snippetRoutes);
+  await app.ready();
+
+  // ...inject requests...
+
+  await app.close();
+});
+```
+
+**Session mock shape:**
+
+```ts
+function mockSession(userId: string) {
+  mockGetSession.mockResolvedValue({
+    user: { id: userId, name: "Test", email: "test@test.com" },
+    session: {
+      id: "sess-1",
+      userId,
+      token: "abc",
+      expiresAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  });
+}
+```
+
+**Unauthenticated requests:** Set `mockGetSession.mockResolvedValue(null)` — `requireAuth` will return 401.
+
+### Web Conventions
+
+#### TanStack Router
+
+The web package uses **file-based routing** with `@tanstack/react-router`. All routes live under `packages/web/src/routes/`.
+
+**Route file conventions:**
+
+| Convention | Example | Behavior |
+|-----------|---------|----------|
+| `index.tsx` | `routes/index.tsx` | Index route at `/` |
+| `__root.tsx` | `routes/__root.tsx` | Root layout shell (header, devtools) |
+| `_prefix.tsx` | `routes/_authenticated.tsx` | Layout/group route — no URL segment |
+| Named files | `routes/signin.tsx` | Page route at `/signin` |
+| Nested files | `routes/_authenticated/snippets/index.tsx` | Page at `/snippets/` inside auth layout |
+
+**Route file shape:** Every route exports a `Route` object using `createFileRoute` (or `createRootRoute` for `__root.tsx`):
+
+```tsx
+import { createFileRoute } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/path")({
+  component: () => <div>...</div>,
+});
+```
+
+**Auth guard pattern:** Use a layout route with `beforeLoad` and `redirect`:
+
+```tsx
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/_authenticated")({
+  beforeLoad: () => {
+    if (!isAuthenticated) throw redirect({ to: "/signin" });
+  },
+  component: () => <Outlet />,
+});
+```
+
+**`routeTree.gen.ts`:** This file is auto-generated by `@tanstack/router-plugin/vite`. Never edit it manually. It is excluded from ESLint.
+
+**Import alias:** `@/` resolves to `./src/` (configured in `tsconfig.json` and `vite.config.ts`).
+
+#### API Client
+
+The API client lives at `@/api/client` and provides typed generic fetch wrappers:
+
+```ts
+import { api } from "@/api/client";
+
+const snippets = await api.get<Snippet[]>("/snippets");
+const created = await api.post<Snippet>("/snippets", { title: "..." });
+const updated = await api.patch<Snippet>("/snippets/123", { title: "..." });
+await api.delete("/snippets/123");
+```
+
+Key behaviors:
+- Sets `credentials: "include"` on all requests for cookie-based auth.
+- Vite dev server proxies `/api` requests to `http://localhost:3000` (the Fastify API).
+- On error (non-2xx), throws `ApiError` with `status` (number) and `message` (from `body.error`).
+
+#### TanStack Query
+
+The `QueryClient` is created in `main.tsx` with `staleTime: 30_000` (30s) and `retry: 1`. It is passed to TanStack Router context, so it is available everywhere:
+
+```tsx
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/client";
+
+// Query example
+const { data, isLoading } = useQuery({
+  queryKey: ["snippets"],
+  queryFn: () => api.get<Snippet[]>("/snippets"),
+});
+
+// Mutation example
+const mutation = useMutation({
+  mutationFn: (body: CreateSnippet) => api.post<Snippet>("/snippets", body),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["snippets"] }),
+});
+```
+
+#### Styling
+
+**Utility:** `import { cn } from "@/lib/utils"` — combines `clsx` and `tailwind-merge` (standard shadcn/ui pattern). Use this for conditional classes:
+
+```tsx
+<div className={cn("base-class", isActive && "active-class")} />
+```
+
+Some existing components use raw `className` strings directly — both styles are acceptable.
+
+**Color palette (dark theme by default):**
+
+| Role | Class |
+|------|-------|
+| Page background | `bg-gray-950` |
+| Text primary | `text-white` |
+| Text secondary | `text-gray-400` |
+| Text muted | `text-gray-500` |
+| Borders | `border-gray-700`, `border-gray-800` |
+| Hover border | `hover:border-gray-600` |
+| Accent (primary) | `bg-indigo-600`, `hover:bg-indigo-500` |
+| Accent (focus) | `focus:border-indigo-500`, `focus:ring-indigo-500` |
+| Input background | `bg-gray-900` |
+| Input placeholder | `placeholder-gray-500` |
+
+**shadcn/ui:** Dependencies are installed (`class-variance-authority`, `clsx`, `tailwind-merge`) but no components have been added yet. Add components with `npx shadcn@latest add <component>`.
 
 ## Installed Agent Skills
 
