@@ -24,7 +24,7 @@ export const updateSnippet = async (
   db: LibSQLDatabase,
 ) => {
   const { id } = requestParamsSchema.parse(request.params);
-  const userId = request.session!.user.id;
+  const userId = request.session.user.id;
 
   const [existing] = await db
     .select({ userId: snippets.userId })

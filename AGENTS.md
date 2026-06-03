@@ -213,7 +213,7 @@ app.get(
   "/api/protected",
   { preHandler: [app.requireAuth] },
   async (request, reply) => {
-    const userId = request.session!.user.id;
+    const userId = request.session.user.id;
     return { userId };
   },
 );
