@@ -1,11 +1,12 @@
-import { snippetRoutes } from "@api/routes/snippets.js";
+import { snippetsRoutes } from "@api/http/controller/snippets/routes.js";
+import { fpAuthMiddleware } from "@api/http/middleware/auth.js";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
-import fastify from "fastify";
+import { fastify } from "fastify";
 import { resolve } from "node:path";
-import { test as baseTest } from "vitest";
-import authMiddleware from "../../middleware/auth.js";
+import { test as baseTest, vi } from "vitest";
+import { z } from "zod";
 import { getDirname } from "../../utils/path.js";
 
 export const test = baseTest
@@ -35,9 +36,31 @@ export const test = baseTest
   })
   .extend("app", async ({ db }, { onCleanup }) => {
     const app = fastify();
+    app.setErrorHandler((error, _, reply) => {
+      if (error instanceof z.ZodError) {
+        return reply
+          .code(400)
+          .send({ message: "Validation Error", issues: error.issues });
+      }
 
-    await app.register(authMiddleware);
-    await app.register(snippetRoutes, { db });
+      if (process.env.NODE_ENV !== "production") {
+        console.error(error);
+      } else {
+        // TODO: use sentry/datadog/graphana or any other log external tool
+      }
+
+      return reply.code(500).send({ message: "Internal Server Error" });
+    });
+
+    app.setNotFoundHandler(async (request, reply) => {
+      if (request.url.startsWith("/api/")) {
+        return reply.code(404).send({ error: "Not found" });
+      }
+    });
+
+    await app.register(fpAuthMiddleware);
+    await app.register(snippetsRoutes, { db });
+
     await app.ready();
 
     onCleanup(async () => {

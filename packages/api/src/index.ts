@@ -1,12 +1,44 @@
-import Fastify from "fastify";
+import { fastify } from "fastify";
+import { z } from "zod";
 import { config } from "./env.js";
-import { healthRoutes } from "./routes/health.js";
+import { snippetsRoutes } from "./http/controller/snippets/routes.js";
+import { fpAuthMiddleware } from "./http/middleware/auth.js";
 import { authRoutes } from "./routes/auth.js";
-import { snippetRoutes } from "./routes/snippets.js";
-import authMiddleware from "./middleware/auth.js";
-import { db } from "./db/index.js";
+import { healthRoutes } from "./routes/health.js";
 
-const app = Fastify({ logger: config.isDevelopment });
+export const app = fastify({ logger: config.isDevelopment });
+
+app.setErrorHandler((error, _, reply) => {
+  if (error instanceof z.ZodError) {
+    return reply
+      .code(400)
+      .send({ message: "Validation Error", issues: error.issues });
+  }
+
+  if (config.nodeEnv !== "production") {
+    console.error(error);
+  } else {
+    // TODO: use datadog
+  }
+
+  return reply.code(500).send({ message: "Internal Server Error" });
+});
+
+app.setNotFoundHandler(async (request, reply) => {
+  if (request.url.startsWith("/api/")) {
+    return reply.code(404).send({ error: "Not found" });
+  }
+  if (config.isProduction) {
+    return reply.sendFile("index.html");
+  }
+});
+
+if (config.isDevelopment) {
+  await app.register(import("@fastify/cors"), {
+    origin: "http://localhost:5173",
+    credentials: true,
+  });
+}
 
 if (config.isProduction) {
   await app.register(import("@fastify/helmet"));
@@ -17,21 +49,6 @@ if (config.isProduction) {
     max: 100,
     timeWindow: "1 minute",
   });
-}
-
-if (config.isDevelopment) {
-  await app.register(import("@fastify/cors"), {
-    origin: "http://localhost:5173",
-    credentials: true,
-  });
-}
-
-await app.register(authMiddleware);
-await app.register(healthRoutes);
-await app.register(authRoutes);
-await app.register(snippetRoutes, { db });
-
-if (config.isProduction) {
   // In production, Fastify is the single server. @fastify/static serves web/dist/ at /.
   // SPA fallback: API misses return JSON 404, everything else serves index.html
   // so TanStack Router handles client-side routing (/snippets, /signin, etc.).
@@ -40,13 +57,12 @@ if (config.isProduction) {
     root: config.webDistPath,
     prefix: "/",
   });
-  app.setNotFoundHandler(async (request, reply) => {
-    if (request.url.startsWith("/api/")) {
-      return reply.code(404).send({ error: "Not found" });
-    }
-    return reply.sendFile("index.html");
-  });
 }
+
+await app.register(fpAuthMiddleware);
+await app.register(healthRoutes);
+await app.register(authRoutes);
+await app.register(snippetsRoutes);
 
 try {
   await app.listen({ port: config.port, host: config.host });

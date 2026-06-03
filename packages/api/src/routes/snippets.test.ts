@@ -1,7 +1,7 @@
 import { makeSnippet } from "@api/tests/factories/make-snippet.js";
 import { makeUser } from "@api/tests/factories/make-user.js";
 import { eq } from "drizzle-orm";
-import { vi } from "vitest";
+import { randomUUID } from "node:crypto";
 import { snippets } from "../db/schema.js";
 import { test as dbTest } from "../tests/fixtures/db.js";
 
@@ -128,13 +128,13 @@ describe("Snippets routes", () => {
 
       const res = await app.inject({
         method: "GET",
-        url: "/api/snippets?public=true",
+        url: "/api/snippets?isPublic=true",
       });
 
       expect(res.statusCode).toBe(200);
-      const body = JSON.parse(res.payload);
-      expect(body.data).toHaveLength(1);
-      expect(body.data[0].title).toBe("Public");
+      const { data } = JSON.parse(res.payload);
+      expect(data).toHaveLength(1);
+      expect(data[0].title).toBe("Public");
     },
   );
 
@@ -253,7 +253,7 @@ describe("Snippets routes", () => {
 
       const res = await app.inject({
         method: "GET",
-        url: "/api/snippets/nonexistent",
+        url: `/api/snippets/${randomUUID()}`,
       });
 
       expect(res.statusCode).toBe(404);

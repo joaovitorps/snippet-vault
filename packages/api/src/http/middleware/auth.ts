@@ -1,7 +1,7 @@
-import fp from "fastify-plugin";
-import type { preHandlerHookHandler } from "fastify";
+import { auth } from "@api/lib/auth";
 import { fromNodeHeaders } from "better-auth/node";
-import { auth } from "../lib/auth.js";
+import type { preHandlerHookHandler } from "fastify";
+import { fastifyPlugin } from "fastify-plugin";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -9,7 +9,7 @@ declare module "fastify" {
   }
 
   interface FastifyRequest {
-    session: typeof auth.$Infer.Session | null;
+    session: typeof auth.$Infer.Session;
   }
 }
 
@@ -25,9 +25,8 @@ const requireAuth: preHandlerHookHandler = async (request, reply) => {
   request.session = session;
 };
 
-export default fp(
+export const fpAuthMiddleware = fastifyPlugin(
   async function authMiddleware(fastify) {
-    fastify.decorateRequest("session", null);
     fastify.decorate("requireAuth", requireAuth);
   },
   {

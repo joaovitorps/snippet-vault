@@ -283,6 +283,163 @@ import { snippets } from "../db/schema.js";
 
 **Timestamps:** Snippets and other app tables use ISO 8601 strings (`new Date().toISOString()`). Auth tables (user, session, account, verification) use epoch milliseconds (`new Date()`). Do not mix conventions within a table.
 
+#### Controller/Routes Architecture
+
+Routes are split into two layers:
+
+- **Controllers** (`src/http/controller/<domain>/*.ts`) — Handle business logic, validation, and HTTP responses. Each file exports one function. They accept `(request, reply, db)` and use `reply.status().send()` for error and success responses.
+- **Routes** (`src/http/controller/<domain>/routes.ts`) — Clean Fastify plugin that defines HTTP methods, and auth middleware. It imports controllers and wires them directly as route handlers. No try/catch or reply logic.
+
+**Controller file pattern:**
+
+```ts
+import { snippets } from "@api/db/schema";
+import { FastifyReply, FastifyRequest } from "fastify";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
+import { z } from "zod";
+
+// we can use objectStrict if necessary
+const requestBodySchema = z.object({
+  title: z.string().min(1).max(200),
+  code: z.string().min(1),
+});
+
+export const createSnippet = async (
+  request: FastifyRequest,
+  reply: FastifyReply,
+  db: LibSQLDatabase,
+) => {
+  const userId = request.session.user.id;
+  const { title, code } = requestBodySchema.parse(request.body);
+
+  const [snippet] = await db
+    .insert(snippets)
+    .values({ title, code, userId })
+    .returning();
+
+  return reply.status(201).send(snippet);
+};
+```
+
+**Error handling in controllers:** Use `reply.status(N).send({ error: "message" })` directly. Do not throw errors to be caught by routes:
+
+```ts
+export const getSnippet = async (
+  request: FastifyRequest,
+  reply: FastifyReply,
+  db: LibSQLDatabase,
+) => {
+  const { id } = requestParamsSchema.parse(request.params);
+
+  const [snippet] = await db.select().from(snippets).where(eq(snippets.id, id));
+
+  if (!snippet) {
+    return reply.status(404).send({ error: "Snippet not found" });
+  }
+
+  return snippet;
+};
+```
+
+**Routes file pattern (clean — no try/catch):**
+
+```ts
+import type { FastifyInstance } from "fastify";
+import { createSnippet } from "./create.js";
+import { getSnippet } from "./get.js";
+
+export const snippetsRoutes = (
+  app: FastifyInstance,
+  opts?: { db?: LibSQLDatabase },
+) => {
+  const db = opts?.db ?? defaultDb;
+
+  app.addHook("onRequest", app.requireAuth);
+
+  app.post("/api/snippets", (request, reply) =>
+    createSnippet(request, reply, db),
+  );
+
+  app.get("/api/snippets/:id", (request, reply) =>
+    getSnippet(request, reply, db),
+  );
+};
+```
+
+#### Zod Validation in Controllers
+
+All controllers validate input using Zod schemas at the boundary. Define schemas as file-level constants with descriptive names:
+
+| Schema Name           | Applies To       | Example Fields      |
+| --------------------- | ---------------- | ------------------- |
+| `requestQuerySchema`  | `request.query`  | page, limit, search |
+| `requestParamsSchema` | `request.params` | id                  |
+| `requestBodySchema`   | `request.body`   | title, code         |
+
+**Pattern:**
+
+```ts
+import { z } from "zod";
+
+const requestQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().max(100).default(20),
+  tag: z.string().optional(),
+});
+
+export const listSnippets = async (request: FastifyRequest) => {
+  const { page, limit, tag } = requestQuerySchema.parse(request.query);
+  // ...
+};
+```
+
+Always destructure only the fields you need from the parsed schema. Use `.default()` for optional fields with fallback values.
+
+#### DB Injection for Testing
+
+Controllers that need database access in tests should accept `db` as a parameter. The routes plugin provides a fallback to the default database:
+
+**Controller:**
+
+```ts
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
+
+export const createSnippet = async (
+  request: FastifyRequest,
+  reply: FastifyReply,
+  db: LibSQLDatabase,
+) => {
+  const [snippet] = await db.insert(snippets)...;
+};
+```
+
+**Routes:**
+
+```ts
+import { db as defaultDb } from "@api/db/index.js";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
+
+export const snippetsRoutes = (app: FastifyInstance, opts?: { db?: LibSQLDatabase }) => {
+  const db = opts?.db ?? defaultDb;
+
+  app.post("/api/snippets", ..., (request, reply) => {
+    return createSnippet(request, reply, db);
+  });
+};
+```
+
+**Testing:**
+
+```ts
+await app.register(snippetsRoutes, { db: testDb });
+```
+
+**Production:**
+
+```ts
+await app.register(snippetsRoutes); // uses defaultDb
+```
+
 #### API Route Tests
 
 Test files live next to the route file they test (e.g., `routes/snippets.test.ts` for `routes/snippets.ts`).
@@ -290,8 +447,6 @@ Test files live next to the route file they test (e.g., `routes/snippets.test.ts
 **Mocking Better Auth:** Mock `../lib/auth.js` with `vi.mock` at the top of the test file, before importing the route under test:
 
 ```ts
-import { vi } from "vitest";
-
 const mockGetSession = vi.fn();
 
 vi.mock("../lib/auth.js", () => ({
