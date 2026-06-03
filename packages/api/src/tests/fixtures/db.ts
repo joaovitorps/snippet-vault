@@ -5,7 +5,7 @@ import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { fastify } from "fastify";
 import { resolve } from "node:path";
-import { test as baseTest, vi } from "vitest";
+import { test as baseTest } from "vitest";
 import { z } from "zod";
 import { getDirname } from "../../utils/path.js";
 
