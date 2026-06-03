@@ -1,4 +1,3 @@
-import { vi } from "vitest";
 import Fastify from "fastify";
 
 vi.mock("../db/index.js", () => ({

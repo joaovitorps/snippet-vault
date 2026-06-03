@@ -1,11 +1,17 @@
+import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@api": resolve(__dirname, "./src"),
+    },
+  },
   test: {
     environment: "node",
     globals: true,
     include: ["src/**/*.test.ts"],
-    setupFiles: ["./src/tests/env-setup.ts"],
+    setupFiles: ["src/tests/env-setup.ts"],
     unstubEnvs: true,
     coverage: {
       provider: "v8",

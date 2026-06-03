@@ -1,9 +1,9 @@
-import { vi } from "vitest";
-import Fastify from "fastify";
+import { fastify } from "fastify";
+import { fpAuthMiddleware } from "./auth";
 
 const mockGetSession = vi.fn();
 
-vi.mock("../lib/auth.js", () => ({
+vi.mock("../../lib/auth.js", () => ({
   auth: {
     api: {
       getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -11,19 +11,17 @@ vi.mock("../lib/auth.js", () => ({
   },
 }));
 
-import authMiddleware from "./auth.js";
-
 describe("requireAuth middleware", () => {
-  const app = Fastify();
+  const app = fastify();
 
   beforeAll(async () => {
-    await app.register(authMiddleware);
+    await app.register(fpAuthMiddleware);
 
     app.get(
       "/api/protected",
       { preHandler: [app.requireAuth] },
       async (request) => {
-        return { userId: request.session!.user.id };
+        return { userId: request.session.user.id };
       },
     );
 

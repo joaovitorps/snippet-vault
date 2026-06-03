@@ -1,8 +1,7 @@
-import { describe, expect } from "vitest";
 import { eq } from "drizzle-orm";
-import { snippets } from "./schema.js";
-import { user } from "./auth-schema.js";
 import { test } from "../tests/fixtures/db.js";
+import { user } from "./auth-schema.js";
+import { snippets } from "./schema.js";
 
 describe("snippets schema", () => {
   test("should insert and query a snippet", async ({ db }) => {
