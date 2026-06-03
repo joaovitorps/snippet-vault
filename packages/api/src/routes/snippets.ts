@@ -1,7 +1,7 @@
-import { randomUUID } from "node:crypto";
-import { eq, and, like, or } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
+import { and, eq, like, or } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
+import type { FastifyInstance } from "fastify";
+import { randomUUID } from "node:crypto";
 import { db as defaultDb } from "../db/index.js";
 import { snippets } from "../db/schema.js";
 
