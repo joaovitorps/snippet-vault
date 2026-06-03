@@ -11,7 +11,11 @@ import { getDirname } from "../../utils/path.js";
 export const test = baseTest
   // eslint-disable-next-line no-empty-pattern
   .extend("db", async ({}, { onCleanup }) => {
-    process.env.DATABASE_URL = ":memory:";
+    vi.stubEnv("DATABASE_URL", ":memory:");
+
+    if (!process.env.DATABASE_URL) {
+      process.exit(1);
+    }
 
     const client = createClient({ url: `file:${process.env.DATABASE_URL}` });
     const db = drizzle(client);

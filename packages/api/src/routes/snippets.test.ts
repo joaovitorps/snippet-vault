@@ -1,7 +1,7 @@
-import { eq, type InferInsertModel } from "drizzle-orm";
-import { type LibSQLDatabase } from "drizzle-orm/libsql";
+import { makeSnippet } from "@api/tests/factories/make-snippet.js";
+import { makeUser } from "@api/tests/factories/make-user.js";
+import { eq } from "drizzle-orm";
 import { vi } from "vitest";
-import { user } from "../db/auth-schema.js";
 import { snippets } from "../db/schema.js";
 import { test as dbTest } from "../tests/fixtures/db.js";
 
@@ -29,40 +29,10 @@ function mockSession(userId: string) {
   });
 }
 
-async function seedUser(db: LibSQLDatabase, userId: string) {
-  await db.insert(user).values({
-    id: userId,
-    name: "Test User",
-    email: `${userId}@test.com`,
-    emailVerified: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-}
-
-function seedSnippet(
-  overrides: Partial<InferInsertModel<typeof snippets>> = {},
-): InferInsertModel<typeof snippets> {
-  const now = new Date().toISOString();
-  return {
-    id: overrides.id ?? "s-1",
-    userId: overrides.userId ?? "user-1",
-    title: overrides.title ?? "Test Snippet",
-    code: overrides.code ?? "console.log('test')",
-    language: overrides.language ?? "ts",
-    description: overrides.description ?? "",
-    tags: overrides.tags ?? [],
-    isPublic: overrides.isPublic ?? false,
-    createdAt: overrides.createdAt ?? now,
-    updatedAt: overrides.updatedAt ?? now,
-    ...overrides,
-  };
-}
-
 describe("Snippets routes", () => {
   dbTest("POST /api/snippets creates a snippet", async ({ app, db }) => {
-    await seedUser(db, "user-1");
-    mockSession("user-1");
+    const { createdUser } = await makeUser(db);
+    mockSession(createdUser.id);
 
     const res = await app.inject({
       method: "POST",
@@ -88,7 +58,7 @@ describe("Snippets routes", () => {
 
     expect(body.id).toBeDefined();
     expect(body.shareId).toBeDefined();
-    expect(body.userId).toBe("user-1");
+    expect(body.userId).toBe(createdUser.id);
     expect(body.createdAt).toBeDefined();
     expect(body.updatedAt).toBeDefined();
   });
@@ -122,15 +92,11 @@ describe("Snippets routes", () => {
   );
 
   dbTest("GET /api/snippets lists own snippets", async ({ app, db }) => {
-    await seedUser(db, "user-1");
-    mockSession("user-1");
+    const { createdUser } = await makeUser(db);
+    mockSession(createdUser.id);
 
-    await db
-      .insert(snippets)
-      .values([
-        seedSnippet({ id: "s-1", title: "Snippet 1", tags: ["foo"] }),
-        seedSnippet({ id: "s-2", title: "Snippet 2", tags: ["bar"] }),
-      ]);
+    await makeSnippet(db, { userId: createdUser.id });
+    await makeSnippet(db, { userId: createdUser.id });
 
     const res = await app.inject({ method: "GET", url: "/api/snippets" });
 
@@ -145,15 +111,20 @@ describe("Snippets routes", () => {
   dbTest(
     "GET /api/snippets filters by public=true on own snippets",
     async ({ app, db }) => {
-      await seedUser(db, "user-1");
-      mockSession("user-1");
+      const { createdUser } = await makeUser(db);
+      mockSession(createdUser.id);
 
-      await db
-        .insert(snippets)
-        .values([
-          seedSnippet({ id: "s-1", title: "Public", isPublic: true }),
-          seedSnippet({ id: "s-2", title: "Private", isPublic: false }),
-        ]);
+      await makeSnippet(db, {
+        userId: createdUser.id,
+        title: "Public",
+        isPublic: true,
+      });
+
+      await makeSnippet(db, {
+        userId: createdUser.id,
+        title: "Private",
+        isPublic: false,
+      });
 
       const res = await app.inject({
         method: "GET",
@@ -170,28 +141,25 @@ describe("Snippets routes", () => {
   dbTest(
     "GET /api/snippets shows only public snippets for other users",
     async ({ app, db }) => {
-      await seedUser(db, "user-1");
-      await seedUser(db, "user-viewer");
-      mockSession("user-viewer");
+      const user1 = await makeUser(db);
+      const user2 = await makeUser(db);
+      mockSession(user1.createdUser.id);
 
-      await db.insert(snippets).values([
-        seedSnippet({
-          id: "s-1",
-          title: "Public",
-          userId: "user-1",
-          isPublic: true,
-        }),
-        seedSnippet({
-          id: "s-2",
-          title: "Private",
-          userId: "user-1",
-          isPublic: false,
-        }),
-      ]);
+      await makeSnippet(db, {
+        userId: user1.createdUser.id,
+        title: "Public",
+        isPublic: true,
+      });
+
+      await makeSnippet(db, {
+        userId: user2.createdUser.id,
+        title: "Private",
+        isPublic: false,
+      });
 
       const res = await app.inject({
         method: "GET",
-        url: "/api/snippets?userId=user-1",
+        url: `/api/snippets?userId=${user1.createdUser.id}`,
       });
 
       expect(res.statusCode).toBe(200);
@@ -202,15 +170,19 @@ describe("Snippets routes", () => {
   );
 
   dbTest("GET /api/snippets filters by tag", async ({ app, db }) => {
-    await seedUser(db, "user-1");
-    mockSession("user-1");
+    const { createdUser } = await makeUser(db);
+    mockSession(createdUser.id);
 
-    await db
-      .insert(snippets)
-      .values([
-        seedSnippet({ id: "s-1", title: "React Hook", tags: ["react"] }),
-        seedSnippet({ id: "s-2", title: "Express Route", tags: ["express"] }),
-      ]);
+    await makeSnippet(db, {
+      userId: createdUser.id,
+      title: "React Hook",
+      tags: ["react"],
+    });
+    await makeSnippet(db, {
+      userId: createdUser.id,
+      title: "Express Route",
+      tags: ["express"],
+    });
 
     const res = await app.inject({
       method: "GET",
@@ -224,23 +196,21 @@ describe("Snippets routes", () => {
   });
 
   dbTest("GET /api/snippets searches by text", async ({ app, db }) => {
-    await seedUser(db, "user-1");
-    mockSession("user-1");
+    const { createdUser } = await makeUser(db);
+    mockSession(createdUser.id);
 
-    await db.insert(snippets).values([
-      seedSnippet({
-        id: "s-1",
-        title: "React Hook",
-        code: "useState()",
-        description: "",
-      }),
-      seedSnippet({
-        id: "s-2",
-        title: "Express Route",
-        code: "app.get()",
-        description: "",
-      }),
-    ]);
+    await makeSnippet(db, {
+      userId: createdUser.id,
+      title: "React Hook",
+      code: "useState()",
+      description: "",
+    });
+    await makeSnippet(db, {
+      userId: createdUser.id,
+      title: "Express Route",
+      code: "app.get()",
+      description: "",
+    });
 
     const res = await app.inject({
       method: "GET",
@@ -256,14 +226,18 @@ describe("Snippets routes", () => {
   dbTest(
     "GET /api/snippets/:id returns a single snippet",
     async ({ app, db }) => {
-      await seedUser(db, "user-1");
-      mockSession("user-1");
+      const { createdUser } = await makeUser(db);
+      mockSession(createdUser.id);
 
-      await db
-        .insert(snippets)
-        .values(seedSnippet({ id: "s-1", title: "React Hook" }));
+      const { createdSnippet } = await makeSnippet(db, {
+        userId: createdUser.id,
+        title: "React Hook",
+      });
 
-      const res = await app.inject({ method: "GET", url: "/api/snippets/s-1" });
+      const res = await app.inject({
+        method: "GET",
+        url: `/api/snippets/${createdSnippet.id}`,
+      });
 
       expect(res.statusCode).toBe(200);
       const body = JSON.parse(res.payload);
@@ -274,8 +248,8 @@ describe("Snippets routes", () => {
   dbTest(
     "GET /api/snippets/:id returns 404 for non-existent",
     async ({ app, db }) => {
-      await seedUser(db, "user-1");
-      mockSession("user-1");
+      const { createdUser } = await makeUser(db);
+      mockSession(createdUser.id);
 
       const res = await app.inject({
         method: "GET",
@@ -288,16 +262,17 @@ describe("Snippets routes", () => {
   );
 
   dbTest("PUT /api/snippets/:id updates a snippet", async ({ app, db }) => {
-    await seedUser(db, "user-1");
-    mockSession("user-1");
+    const { createdUser } = await makeUser(db);
+    mockSession(createdUser.id);
 
-    await db
-      .insert(snippets)
-      .values(seedSnippet({ id: "s-1", title: "Old Title" }));
+    const { createdSnippet } = await makeSnippet(db, {
+      userId: createdUser.id,
+      title: "Old Title",
+    });
 
     const res = await app.inject({
       method: "PUT",
-      url: "/api/snippets/s-1",
+      url: `/api/snippets/${createdSnippet.id}`,
       payload: { title: "New Title" },
     });
 
@@ -309,19 +284,18 @@ describe("Snippets routes", () => {
   dbTest(
     "PUT /api/snippets/:id returns 403 for non-owner",
     async ({ app, db }) => {
-      await seedUser(db, "user-1");
-      await seedUser(db, "user-2");
-      mockSession("user-2");
+      const user1 = await makeUser(db);
+      const user2 = await makeUser(db);
+      mockSession(user2.createdUser.id);
 
-      await db
-        .insert(snippets)
-        .values(
-          seedSnippet({ id: "s-1", userId: "user-1", title: "Old Title" }),
-        );
+      const { createdSnippet } = await makeSnippet(db, {
+        userId: user1.createdUser.id,
+        title: "Old Title",
+      });
 
       const res = await app.inject({
         method: "PUT",
-        url: "/api/snippets/s-1",
+        url: `/api/snippets/${createdSnippet.id}`,
         payload: { title: "Hijacked" },
       });
 
@@ -333,16 +307,17 @@ describe("Snippets routes", () => {
   );
 
   dbTest("DELETE /api/snippets/:id deletes a snippet", async ({ app, db }) => {
-    await seedUser(db, "user-1");
-    mockSession("user-1");
+    const { createdUser } = await makeUser(db);
+    mockSession(createdUser.id);
 
-    await db
-      .insert(snippets)
-      .values(seedSnippet({ id: "s-1", title: "To Delete" }));
+    const { createdSnippet } = await makeSnippet(db, {
+      userId: createdUser.id,
+      title: "To Delete",
+    });
 
     const res = await app.inject({
       method: "DELETE",
-      url: "/api/snippets/s-1",
+      url: `/api/snippets/${createdSnippet.id}`,
     });
 
     expect(res.statusCode).toBe(204);
@@ -350,26 +325,25 @@ describe("Snippets routes", () => {
     const [deleted] = await db
       .select()
       .from(snippets)
-      .where(eq(snippets.id, "s-1"));
+      .where(eq(snippets.id, createdSnippet.id));
     expect(deleted).toBeUndefined();
   });
 
   dbTest(
     "DELETE /api/snippets/:id returns 403 for non-owner",
     async ({ app, db }) => {
-      await seedUser(db, "user-1");
-      await seedUser(db, "user-2");
-      mockSession("user-2");
+      const user1 = await makeUser(db);
+      const user2 = await makeUser(db);
+      mockSession(user2.createdUser.id);
 
-      await db
-        .insert(snippets)
-        .values(
-          seedSnippet({ id: "s-1", userId: "user-1", title: "Not Yours" }),
-        );
+      const { createdSnippet } = await makeSnippet(db, {
+        userId: user1.createdUser.id,
+        title: "Not Yours",
+      });
 
       const res = await app.inject({
         method: "DELETE",
-        url: "/api/snippets/s-1",
+        url: `/api/snippets/${createdSnippet.id}`,
       });
 
       expect(res.statusCode).toBe(403);
@@ -380,13 +354,15 @@ describe("Snippets routes", () => {
   );
 
   dbTest("GET /api/snippets paginates results", async ({ app, db }) => {
-    await seedUser(db, "user-1");
-    mockSession("user-1");
+    const { createdUser } = await makeUser(db);
+    mockSession(createdUser.id);
 
-    const rows = Array.from({ length: 5 }, (_, i) =>
-      seedSnippet({ id: `s-${i + 1}`, title: `Snippet ${i + 1}` }),
-    );
-    await db.insert(snippets).values(rows);
+    for (let i = 0; i < 5; i++) {
+      await makeSnippet(db, {
+        userId: createdUser.id,
+        title: `Snippet ${i + 1}`,
+      });
+    }
 
     const res = await app.inject({
       method: "GET",
