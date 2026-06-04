@@ -1,4 +1,4 @@
-import { snippets } from "@api/db/schema";
+import { snippets } from "@api/db/schema.js";
 import { and, eq, like, or } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -28,6 +28,7 @@ export const listSnippets = async (
   const targetUserId = userId ?? currentUserId;
   const isOwnSnippets = targetUserId === currentUserId;
 
+  // Users can filter their own snippets, but other users only expose public snippets.
   if (isOwnSnippets) {
     conditions.push(eq(snippets.userId, currentUserId));
     if (isPublic !== undefined) {

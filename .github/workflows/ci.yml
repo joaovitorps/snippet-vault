@@ -41,6 +41,28 @@ jobs:
       - run: npm run build
       - run: npm run typecheck
 
+      - name: Verify server can start and stay healthy
+        run: |
+          set -euo pipefail
+
+          cp .env.example .env
+
+          # The build can pass while emitted ESM imports still fail at runtime.
+          npm run start -w packages/api &
+          PID=$!
+
+          sleep 5
+
+          if kill -0 "$PID" 2>/dev/null; then
+            echo "Server is running, treating as success"
+            kill "$PID"
+            wait "$PID" || true
+            exit 0
+          else
+            echo "Server failed to stay up"
+            exit 1
+          fi
+
   docker:
     runs-on: ubuntu-latest
     steps:

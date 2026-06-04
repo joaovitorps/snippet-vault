@@ -1,5 +1,5 @@
 import { fastify } from "fastify";
-import { fpAuthMiddleware } from "./auth";
+import { fpAuthMiddleware } from "./auth.js";
 
 const mockGetSession = vi.fn();
 

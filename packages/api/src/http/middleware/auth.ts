@@ -1,4 +1,4 @@
-import { auth } from "@api/lib/auth";
+import { auth } from "@api/lib/auth.js";
 import { fromNodeHeaders } from "better-auth/node";
 import type { preHandlerHookHandler } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";

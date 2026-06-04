@@ -1,4 +1,4 @@
-import { snippets } from "@api/db/schema";
+import { snippets } from "@api/db/schema.js";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { randomUUID } from "node:crypto";
