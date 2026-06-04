@@ -45,11 +45,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          cp .env.example .env
+
           # The build can pass while emitted ESM imports still fail at runtime.
           npm run start -w packages/api &
           PID=$!
 
-          sleep 10
+          sleep 5
 
           if kill -0 "$PID" 2>/dev/null; then
             echo "Server is running, treating as success"
