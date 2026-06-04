@@ -1,4 +1,4 @@
-import { snippets } from "@api/db/schema";
+import { snippets } from "@api/db/schema.js";
 import { InferInsertModel } from "drizzle-orm";
 import { LibSQLDatabase } from "drizzle-orm/libsql";
 import { randomUUID } from "node:crypto";

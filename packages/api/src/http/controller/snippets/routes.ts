@@ -1,4 +1,4 @@
-import { db as defaultDb } from "@api/db";
+import { db as defaultDb } from "@api/db/index.js";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import type { FastifyInstance } from "fastify";
 import { createSnippet } from "./create.js";
@@ -11,6 +11,7 @@ export const snippetsRoutes = (
   app: FastifyInstance,
   opts?: { db?: LibSQLDatabase },
 ) => {
+  // Route tests inject an isolated database while production uses the default connection.
   const db = opts?.db ?? defaultDb;
 
   app.addHook("onRequest", app.requireAuth);
