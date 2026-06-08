@@ -16,6 +16,7 @@ COPY packages/web/tsconfig.node.json packages/web/
 COPY packages/web/vite.config.ts packages/web/
 COPY packages/web/index.html packages/web/
 COPY packages/api/src/ packages/api/src/
+COPY packages/api/drizzle/ packages/api/drizzle/
 COPY packages/web/src/ packages/web/src/
 RUN npm run build
 
@@ -30,6 +31,7 @@ COPY --from=build /app/node_modules/ node_modules/
 COPY --from=build /app/package.json package.json
 COPY --from=build /app/packages/api/node_modules/ packages/api/node_modules/
 COPY --from=build /app/packages/api/package.json packages/api/
+COPY --from=build /app/packages/api/drizzle/ packages/api/drizzle/
 COPY --from=build /app/packages/api/dist/ packages/api/dist/
 COPY --from=build /app/packages/web/dist/ packages/web/dist/
 
