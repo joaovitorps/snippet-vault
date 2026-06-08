@@ -1,11 +1,18 @@
 services:
   app:
-    build: .
+    image: ${APP_IMAGE:-ghcr.io/joaovitorps/snippet-vault:main}
     ports:
       - "3000:3000"
     env_file:
       - .env
     restart: unless-stopped
+
+  migrate:
+    image: ${APP_IMAGE:-ghcr.io/joaovitorps/snippet-vault:main}
+    command: ["node", "packages/api/dist/db/migrate.js"]
+    env_file:
+      - .env
+    restart: "no"
 
   caddy:
     image: caddy:2-alpine
