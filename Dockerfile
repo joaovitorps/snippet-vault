@@ -27,6 +27,8 @@ RUN npm prune --omit=dev
 FROM node:22-alpine AS production
 WORKDIR /app
 
+COPY --from=build /app/node_modules/drizzle-orm/libsql/ node_modules/drizzle-orm/libsql/
+COPY --from=build /app/node_modules/@libsql/client/ node_modules/@libsql/client/
 COPY --from=build /app/packages/api/drizzle/ packages/api/drizzle/
 COPY --from=build /app/packages/api/dist/ packages/api/dist/
 COPY --from=build /app/packages/web/dist/ packages/web/dist/
