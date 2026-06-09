@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_authenticated/snippets/")({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Snippets</h2>
       </div>
-      <p className="mt-12 text-center text-gray-500">
+      <p className="mt-12 text-center text-muted-foreground">
         No snippets yet. Create your first one!
       </p>
     </div>

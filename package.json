@@ -28,6 +28,9 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.59.4"
   },
+  "overrides": {
+    "better-auth": "1.6.11"
+  },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,json,css,html,md}": [
       "prettier --write",
