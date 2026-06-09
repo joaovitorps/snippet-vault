@@ -8,10 +8,7 @@
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["vitest/globals", "vite/client"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "types": ["vitest/globals", "vite/client"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
