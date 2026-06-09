@@ -16,6 +16,6 @@ export async function sendMagicLinkEmail(params: {
     to: config.isDevelopment ? "delivered@resend.dev" : params.to,
     subject: "Sign in to SnippetVault",
     html: `<p>Click <a href="${params.url}">here</a> to sign in to SnippetVault.</p>
-<p>This link expires in 15 minutes.</p>`,
+<p>This link expires in 10 minutes.</p>`,
   });
 }
