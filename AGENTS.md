@@ -120,6 +120,10 @@ git commit
     → any failure blocks commit
 ```
 
+Do not bypass Husky, lint-staged, or any configured git hook with flags like
+`--no-verify`. If a hook fails, fix the underlying issue or stop and report the
+failure so the user can review it.
+
 ## Codebase Patterns
 
 ### Imports
